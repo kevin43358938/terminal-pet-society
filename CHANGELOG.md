@@ -52,3 +52,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [2.1.0]: https://github.com/kevin43358938/terminal-pet-society/compare/v2.0.0...v2.1.0
 [2.0.0]: https://github.com/kevin43358938/terminal-pet-society/compare/v1.0.0...v2.0.0
 [1.0.0]: https://github.com/kevin43358938/terminal-pet-society/releases/tag/v1.0.0
+
+## [3.1.0] — 2026-08-07
+
+### Changed
+- **Minimal Iconic ASCII style**: 3-4 line sprites, classic internet aesthetic
+- Clean simple characters only: `/\()..-_~'"` — no box-drawing glyphs
+- Consistent body per species, 10 mood faces, 2-frame idle blink
+- Decor elements per species (cat=🍖, dog=🦴, dragon=🔥, unicorn=🌈)
+- 132 lines of code (down from 972 in v3.0.0)
+
+[3.1.0]: https://github.com/kevin43358938/terminal-pet-society/compare/v3.0.0...v3.1.0

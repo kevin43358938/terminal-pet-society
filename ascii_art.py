@@ -1,7 +1,6 @@
 """
-Terminal Pet Society — Clean, Recognizable ASCII Art
-Classic internet ASCII style. Consistent body per species, 10 mood faces.
-Uses simple characters: / \ ( ) . - _ ~ ' " | 
+Terminal Pet Society — Minimal Iconic ASCII Art
+Classic internet style. 3-4 lines per sprite. Clean, cute, recognizable.
 """
 
 from enum import Enum
@@ -33,152 +32,69 @@ class Species(Enum):
     PENGUIN = "penguin"
 
 
-# ══════════════════════════════════════════════
-# Faces — these get inserted into body templates
-# Each mood has (eyes, mouth, accessory, alt_eyes) for blink anim
-# ══════════════════════════════════════════════
+# ════════════════════════════════════
+# Faces — 10 moods, 2 frames for idle
+# ════════════════════════════════════
 
-FACES = {
-    "idle":     (" ◕ ‿ ◕ ",  " - ‿ - "),
-    "happy":    (" ^ ◡ ^ ",  None),    # ♡ added inline
-    "hungry":   (" ; ω ; ",  None),
-    "sleepy":   (" - ~ - ",  None),
-    "excited":  (" ★ ▽ ★ ",  None),
-    "sad":      (" ; _ ; ",  None),
-    "coding":   (" ⌨ ω ⌨ ",  None),
-    "playful":  (" ▼ ᗜ ▼ ",  None),
-    "sick":     (" × _ × ",  None),
-    "dead":     (" ✝ _ ✝ ",  None),
+F = {
+    "idle":    ("(◕‿◕)", "(-‿-)"),
+    "happy":   ("(^◡^) ♡",),
+    "hungry":  ("(;ω;)",),
+    "sleepy":  ("(-~-) 💤",),
+    "excited": ("(★▽★) ✨",),
+    "sad":     ("(;_;) 💧",),
+    "coding":  ("(⌨ω⌨) 💻",),
+    "playful": ("(▼ᗜ▼)",),
+    "sick":    ("(×_×) 🤒",),
+    "dead":    ("(✝_✝) 👼",),
 }
 
-MOOD_DECOR = {
-    "happy":   " ♡",
-    "hungry":  "",
-    "sleepy":  " 💤",
-    "excited": " ✨",
-    "sad":     " 💧",
-    "coding":  " 💻",
-    "playful": "",
-    "sick":    " 🤒",
-    "dead":    " 👼",
-    "idle":    "",
+# Decor below face line (species-specific)
+DECOR = {
+    "hungry":  {"cat":"🍖","dog":"🦴","dragon":"🍖","slime":"🍽️","ghost":"🍽️","robot":"⚡","unicorn":"🍎","penguin":"🐟"},
+    "happy":   {"dragon":"🔥","unicorn":"🌈","robot":"✅"},
+    "excited": {"dragon":"🔥🔥","unicorn":"🌈🌈","robot":"⚡"},
 }
 
-
-# ══════════════════════════════════════════════
-# Body templates — {eyes} gets replaced
-# ══════════════════════════════════════════════
-
-CAT_BODY = r"""
-    /\_/\
-   ({eyes})
-    > ^ <
-   /     \ """
-
-DOG_BODY = r"""
-     __   __
-    /  \_/  \
-   ( {eyes} )
-    \  ___  /
-     \/   \/  """
-
-DRAGON_BODY = r"""
-       ___
-     _/   \_
-    ( {eyes} )
-     \ ___ /
-      \   /   """
-
-SLIME_BODY = r"""
-     .-~~~-.
-    ( {eyes} )
-     \_   _/
-       \ /    """
-
-GHOST_BODY = r"""
-     .-~~~-.
-    ( {eyes} )
-     \_._/
-      ~ ~    """
-
-ROBOT_BODY = r"""
-    .-------.
-    | {eyes} |
-    | [===] |
-    '---┬---'
-       ( )   """
-
-UNICORN_BODY = r"""
-       ✦
-      /|\
-     ( | )
-    ( {eyes} )
-     \ ___ /
-       \ /   """
-
-PENGUIN_BODY = r"""
-      .-.
-     ( v )
-    ( {eyes} )
-    (( ___ ))
-     '-----'  """
-
+# ════════════════════════════════════
+# Bodies — {face} gets replaced
+# ════════════════════════════════════
 
 BODIES = {
-    "cat":     CAT_BODY,
-    "dog":     DOG_BODY,
-    "dragon":  DRAGON_BODY,
-    "slime":   SLIME_BODY,
-    "ghost":   GHOST_BODY,
-    "robot":   ROBOT_BODY,
-    "unicorn": UNICORN_BODY,
-    "penguin": PENGUIN_BODY,
+    "cat":     "  (\\_/)\n  {face}\n  (\")(\")",
+    "dog":     "   /) /)\n  {face}\n  c(\")(\")",
+    "dragon":  "   __~@\n  {face}\n  /   \\",
+    "slime":   "  .-~~~-.\n  {face}\n  \\___/",
+    "ghost":   "  .-~~~-.\n  {face}\n  \\_._/",
+    "robot":   "  [{face}]\n  [===]\n  /| |\\",
+    "unicorn": "    ✦\n  {face}\n   /|\\",
+    "penguin": "   {face}\n   (°°)",
 }
 
 
-# ══════════════════════════════════════════════
-# Build PET_ART from templates
-# ══════════════════════════════════════════════
-
-def _build_art(species: str, mood: str) -> List[str]:
-    body = BODIES.get(species, CAT_BODY)
-    face_data = FACES.get(mood, FACES["idle"])
-    main_face, alt_face = face_data[0], face_data[1] if len(face_data) > 1 else None
-    decor = MOOD_DECOR.get(mood, "")
-
-    def make_frame(face: str, add_decor: bool = True) -> str:
-        art = body.replace("{eyes}", face.strip())
-        if add_decor and decor:
-            lines = art.strip("\n").split("\n")
-            # Add decor to last line
-            if lines:
-                lines[-1] = lines[-1] + decor
-            return "\n".join(lines)
-        return art
-
-    frames = [make_frame(main_face)]
-    if alt_face:
-        frames.append(make_frame(alt_face, add_decor=False))
-    return frames
+def _build() -> dict:
+    art = {}
+    for sp, body in BODIES.items():
+        art[sp] = {}
+        for mood, faces in F.items():
+            frames = []
+            for fi, face in enumerate(faces):
+                line = body.replace("{face}", face)
+                # Add species-specific decor below last line
+                if mood in DECOR and sp in DECOR[mood]:
+                    line += " " + DECOR[mood][sp]
+                frames.append(line)
+            art[sp][mood] = frames
+    return art
 
 
-PET_ART: Dict[str, Dict[str, List[str]]] = {}
-for sp in BODIES:
-    PET_ART[sp] = {}
-    for mood in FACES:
-        PET_ART[sp][mood] = _build_art(sp, mood)
+PET_ART: Dict[str, Dict[str, List[str]]] = _build()
 
-
-# ══════════════════════════════════════════════
-# Public API
-# ══════════════════════════════════════════════
 
 def get_art(species: str, mood: str, frame: int = 0) -> str:
     species_art = PET_ART.get(species, PET_ART["cat"])
     mood_frames = species_art.get(mood, species_art.get("idle", [""]))
-    if not mood_frames:
-        return "  (◕_◕)"
-    return mood_frames[frame % len(mood_frames)]
+    return mood_frames[frame % max(len(mood_frames), 1)] if mood_frames else "  (◕_◕)"
 
 
 def get_frame_count(species: str, mood: str) -> int:
