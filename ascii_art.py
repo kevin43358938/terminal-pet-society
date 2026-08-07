@@ -1,6 +1,6 @@
 """
-Terminal Pet Society — Minimal Iconic ASCII Art
-Classic internet style. 3-4 lines per sprite. Clean, cute, recognizable.
+Terminal Pet Society — Detailed Chunky Pixel Art
+6-7 line sprites. Block characters. Ears, wings, tails, paws — all visible.
 """
 
 from enum import Enum
@@ -33,57 +33,124 @@ class Species(Enum):
 
 
 # ════════════════════════════════════
-# Faces — 10 moods, 2 frames for idle
+# Faces: (eyes, decor, blink_eyes)
 # ════════════════════════════════════
 
 F = {
-    "idle":    ("(◕‿◕)", "(-‿-)"),
-    "happy":   ("(^◡^) ♡",),
-    "hungry":  ("(;ω;)",),
-    "sleepy":  ("(-~-) 💤",),
-    "excited": ("(★▽★) ✨",),
-    "sad":     ("(;_;) 💧",),
-    "coding":  ("(⌨ω⌨) 💻",),
-    "playful": ("(▼ᗜ▼)",),
-    "sick":    ("(×_×) 🤒",),
-    "dead":    ("(✝_✝) 👼",),
+    "idle":    ("◉ ◉", "",    "⊙ ⊙"),
+    "happy":   ("★ ★", "♡",   None),
+    "hungry":  ("◎ ◎", "🍖",  None),
+    "sleepy":  ("~ ~", "💤",  None),
+    "excited": ("☆ ☆", "✨",  None),
+    "sad":     ("◒ ◒", "💧",  None),
+    "coding":  ("◈ ◈", "💻",  None),
+    "playful": ("▼ ▼", "🎾",  None),
+    "sick":    ("× ×", "🤒",  None),
+    "dead":    ("† †", "👼",  None),
 }
 
-# Decor below face line (species-specific)
-DECOR = {
-    "hungry":  {"cat":"🍖","dog":"🦴","dragon":"🍖","slime":"🍽️","ghost":"🍽️","robot":"⚡","unicorn":"🍎","penguin":"🐟"},
-    "happy":   {"dragon":"🔥","unicorn":"🌈","robot":"✅"},
-    "excited": {"dragon":"🔥🔥","unicorn":"🌈🌈","robot":"⚡"},
-}
 
 # ════════════════════════════════════
-# Bodies — {face} gets replaced
+# Bodies — {eyes} = face, {decor} = mood icon
 # ════════════════════════════════════
 
 BODIES = {
-    "cat":     "  (\\_/)\n  {face}\n  (\")(\")",
-    "dog":     "   /) /)\n  {face}\n  c(\")(\")",
-    "dragon":  "   __~@\n  {face}\n  /   \\",
-    "slime":   "  .-~~~-.\n  {face}\n  \\___/",
-    "ghost":   "  .-~~~-.\n  {face}\n  \\_._/",
-    "robot":   "  [{face}]\n  [===]\n  /| |\\",
-    "unicorn": "    ✦\n  {face}\n   /|\\",
-    "penguin": "   {face}\n   (°°)",
+    "cat": [
+        "  ▄▀▀▀▀▀▀▄  ",
+        " ▐█  {eyes}  █▌ ",
+        " ▐█   ⌂   █▌ ",
+        "  █▄▄▄▄▄▄█  ",
+        "   ▐█  █▌   ",
+        "    ▀▄▄▀    ",
+        "    {decor}    ",
+    ],
+
+    "dog": [
+        " ▄▀▀▀▀▀▀▀▀▄ ",
+        "▐█   {eyes}   █▌",
+        "▐█    ⌂    █▌",
+        " █▄▄▄▄▄▄▄▄█ ",
+        "  ▐█▄▄▄▄█▌  ",
+        "   {decor}   ",
+    ],
+
+    "dragon": [
+        "    ▄▀▀▀▀▄    ",
+        " ▄█▀ {eyes} ▀█▄ ",
+        "▐██   ⌂   ██▌",
+        " ▀█▄▄▄▄▄▄█▀ ",
+        "   ▐█  █▌   ",
+        "    ▀▄▄▀    ",
+        "    {decor}    ",
+    ],
+
+    "slime": [
+        "   .-~~~~~-.   ",
+        "  (  {eyes}  )  ",
+        "   \\   ⌂   /   ",
+        "    \\_____/    ",
+        "     {decor}     ",
+    ],
+
+    "ghost": [
+        "   .-~~~~~~-.   ",
+        "  (   {eyes}   )  ",
+        "   \\   ⌂   /   ",
+        "    \\_..._/    ",
+        "     ~    ~     ",
+        "     {decor}     ",
+    ],
+
+    "robot": [
+        "   ╔════════╗   ",
+        "   ║  {eyes}  ║   ",
+        "   ║   [⌂]  ║   ",
+        "   ╚══╦══╦══╝   ",
+        "     ╔╝  ╚╗     ",
+        "     {decor}     ",
+    ],
+
+    "unicorn": [
+        "      ✦✦✦      ",
+        "   ▄█▀ {eyes} ▀█▄   ",
+        "  ▐██  ⌂  ██▌  ",
+        "   ▀█▄▄▄▄▄█▀   ",
+        "     ▐▌  ▐▌    ",
+        "     {decor}     ",
+    ],
+
+    "penguin": [
+        "    ▄▀▀▀▀▀▀▄    ",
+        "   █  {eyes}  █   ",
+        "   █   ⌂   █   ",
+        "   █▄▄▄▄▄▄▄█   ",
+        "    ▐█    █▌   ",
+        "    {decor}    ",
+    ],
 }
 
 
 def _build() -> dict:
     art = {}
-    for sp, body in BODIES.items():
+    for sp, body_lines in BODIES.items():
         art[sp] = {}
-        for mood, faces in F.items():
-            frames = []
-            for fi, face in enumerate(faces):
-                line = body.replace("{face}", face)
-                # Add species-specific decor below last line
-                if mood in DECOR and sp in DECOR[mood]:
-                    line += " " + DECOR[mood][sp]
-                frames.append(line)
+        for mood, face_data in F.items():
+            eyes, decor = face_data[0], face_data[1]
+            blink = face_data[2] if len(face_data) > 2 else None
+
+            def make(eye_str: str, dec: str) -> str:
+                lines = []
+                for line in body_lines:
+                    line = line.replace("{eyes}", eye_str).replace("{decor}", dec or "")
+                    lines.append(line)
+                if not dec:
+                    while lines and lines[-1].strip() == "":
+                        lines.pop()
+                return "\n".join(lines)
+
+            frames = [make(eyes, decor)]
+            if blink:
+                frames.append(make(blink, ""))
             art[sp][mood] = frames
     return art
 
@@ -94,7 +161,7 @@ PET_ART: Dict[str, Dict[str, List[str]]] = _build()
 def get_art(species: str, mood: str, frame: int = 0) -> str:
     species_art = PET_ART.get(species, PET_ART["cat"])
     mood_frames = species_art.get(mood, species_art.get("idle", [""]))
-    return mood_frames[frame % max(len(mood_frames), 1)] if mood_frames else "  (◕_◕)"
+    return mood_frames[frame % max(len(mood_frames), 1)] if mood_frames else "  ◉ ◉  "
 
 
 def get_frame_count(species: str, mood: str) -> int:

@@ -63,3 +63,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - 132 lines of code (down from 972 in v3.0.0)
 
 [3.1.0]: https://github.com/kevin43358938/terminal-pet-society/compare/v3.0.0...v3.1.0
+
+## [3.2.0] — 2026-08-07
+
+### Changed
+- **Detailed chunky pixel art**: 6-7 line sprites with block characters (▄▀█▌▐)
+- Recognizable features: cat ears/whiskers/tail, dog floppy body, dragon wings
+- Species-specific details: robot double-border, unicorn triple-horn, ghost wavy bottom
+- Round face eyes (◉◉) with 10 mood variations
+- 2-frame idle blink animation (◉◉ → ⊙⊙)
+
+[3.2.0]: https://github.com/kevin43358938/terminal-pet-society/compare/v3.1.0...v3.2.0
