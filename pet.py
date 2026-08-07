@@ -116,6 +116,7 @@ PERSONALITY_DESCRIPTIONS = {
 SPECIES_EMOJIS = {
     "cat": "🐱", "dog": "🐶", "dragon": "🐉",
     "slime": "🟢", "ghost": "👻", "robot": "🤖",
+    "unicorn": "🦄", "penguin": "🐧",
 }
 
 MOOD_EMOJIS = {

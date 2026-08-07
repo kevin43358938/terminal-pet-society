@@ -16,16 +16,18 @@ Then it can visit other developers' pets. Your disciplined git-cat meets someone
 
 ---
 
-## Six species, infinite personalities
+## Eight species, infinite personalities
 
 | Species | Vibe |
 |---------|------|
-| 🐱 **Cat** | Balanced, watches everything |
+| 🐱 **Cat** | Elegant, watches everything |
 | 🐶 **Dog** | Loyal, social, loves `npm install` |
-| 🐉 **Dragon** | Creative, gets excited by code |
-| 🟢 **Slime** | Adaptable, mirrors your style |
-| 👻 **Ghost** | Mysterious, loves `ssh` |
+| 🐉 **Dragon** | Majestic, creative |
+| 🟢 **Slime** | Bouncy, mirrors your style |
+| 👻 **Ghost** | Ethereal, loves `ssh` |
 | 🤖 **Robot** | Disciplined, binary soul |
+| 🦄 **Unicorn** | Magical, sparkly, 🌈 |
+| 🐧 **Penguin** | Chubby, waddling, adorable |
 
 Each pet has 6 personality traits (Discipline, Creativity, Social, Curiosity, Aggression, Laziness) that shift based on what you type. A vim user's pet becomes different from a VSCode user's pet.
 
@@ -126,7 +128,7 @@ terminal-pet-society/
 ├── main.py          Entry point, CLI, orchestration
 ├── pet.py           Pet engine: stats, traits, evolution, learning
 ├── tui.py           Terminal UI: curses rendering, particles, input
-├── ascii_art.py     All ASCII art frames for 6 species × 10 moods
+├── ascii_art.py     All ASCII art frames for 8 species × 10 moods
 ├── network.py       P2P: TCP server/client, UDP discovery, network scan
 ├── watcher.py       Shell history monitor (bash/zsh/fish)
 ├── persistence.py   SQLite save/load
