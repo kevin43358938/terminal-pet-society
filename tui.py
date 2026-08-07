@@ -1,159 +1,177 @@
 """
-Terminal Pet Society - Terminal UI
-Beautiful curses-based interface with animated pets, particles, and stats.
+Terminal Pet Society — Rich-based Terminal UI
+Beautiful bordered cards, dynamic mood colors, animated progress bars.
 """
 
-import curses
+import asyncio
 import math
 import random
 import time
 from typing import Optional
 
+from rich.console import Console, RenderableType
+from rich.live import Live
+from rich.panel import Panel
+from rich.table import Table
+from rich.text import Text
+from rich.progress_bar import ProgressBar
+from rich.style import Style
+from rich.align import Align
+from rich.box import Box, ROUNDED, HEAVY, DOUBLE, SQUARE
+from rich.color import Color
+
 from pet import Pet, PetSociety, TRAIT_ICONS, MOOD_EMOJIS
-from ascii_art import get_art, get_frame_count
+from ascii_art import get_art
 from persistence import save_pet, list_saved_pets
 from network import scan_network, PetClient, DEFAULT_PORT, DiscoveryService
 from watcher import get_recent_commands
 
 
-# ─── Color constants ───
-C_PET_TITLE = 5
-C_GREEN = 2
-C_YELLOW = 3
-C_RED = 4
-C_MAGENTA = 5
-C_BLUE = 6
-C_WHITE = 7
-C_CYAN = 1
+# ═══════════════════════════════════════════════════════════════
+# Mood → Rich color mapping
+# ═══════════════════════════════════════════════════════════════
 
-# These return actual curses attributes; initialized lazily in _init_colors
-MOOD_COLOR_IDS = {
-    "happy":    (C_GREEN, False),
-    "excited":  (C_MAGENTA, True),
-    "hungry":   (C_YELLOW, False),
-    "sad":      (C_RED, False),
-    "sleepy":   (C_BLUE, False),
-    "coding":   (C_CYAN, False),
-    "idle":     (C_WHITE, False),
-    "playful":  (C_GREEN, True),
-    "sick":     (C_RED, True),
+MOOD_STYLE = {
+    "happy":   Style(color="green", bold=True),
+    "excited": Style(color="magenta", bold=True),
+    "hungry":  Style(color="yellow"),
+    "sad":     Style(color="red"),
+    "sleepy":  Style(color="blue"),
+    "coding":  Style(color="cyan"),
+    "idle":    Style(color="white"),
+    "playful": Style(color="green"),
+    "sick":    Style(color="red", bold=True),
+    "dead":    Style(color="grey50", dim=True),
+}
+
+MOOD_BORDER_COLOR = {
+    "happy":   "green",
+    "excited": "magenta",
+    "hungry":  "yellow",
+    "sad":     "red",
+    "sleepy":  "blue",
+    "coding":  "cyan",
+    "idle":    "white",
+    "playful": "green",
+    "sick":    "red",
+    "dead":    "grey50",
+}
+
+MOOD_BAR_COLOR = {
+    "happy":   "green",
+    "excited": "magenta",
+    "hungry":  "yellow",
+    "sad":     "red",
+    "sleepy":  "blue",
+    "coding":  "cyan",
+    "idle":    "grey70",
+    "playful": "green",
+    "sick":    "red",
+    "dead":    "grey50",
 }
 
 
-# ─── Main UI ───
+# ═══════════════════════════════════════════════════════════════
+# Terminal UI (Rich-based)
+# ═══════════════════════════════════════════════════════════════
 
 class TerminalUI:
     def __init__(self, pet: Pet, society: PetSociety):
         self.pet = pet
         self.society = society
-        self.screen: Optional[curses.window] = None
+        self.console = Console()
         self.running = False
-        self.max_y = self.max_x = 0
         self.messages: list = []
         self.input_buffer = ""
         self.input_mode = False
         self.last_tick = time.time()
-        self.particles = ParticleSystem()
-        # Pet wandering
-        self.px = self.py = 10.0
-        self.pvx = self.pvy = 0.0
-        self.ptx = self.pty = 10.0
-        self.art_w = self.art_h = 40
-        # Cooldowns
+        self.live: Optional[Live] = None
+        self.anim_frame = 0
+        self.anim_timer = 0.0
         self._last_save = time.time()
-        self._last_discovery = 0.0
         self._discovery_svc: Optional[DiscoveryService] = None
 
     def log(self, msg: str):
         ts = time.strftime("%H:%M:%S")
-        self.messages.append(f"[{ts}] {msg}")
-        if len(self.messages) > 200:
-            self.messages = self.messages[-200:]
+        self.messages.append(f"[dim]{ts}[/dim] {msg}")
+        if len(self.messages) > 100:
+            self.messages = self.messages[-100:]
 
     def run(self):
-        curses.wrapper(self._loop)
-
-    def _loop(self, screen):
-        self.screen = screen
-        self.running = True
-        curses.curs_set(0)
-        screen.nodelay(True)
-        self._init_colors()
-        self.last_tick = time.time()
-        self.px = self.ptx = 10
-        self.py = self.pty = 5
-        self._last_save = time.time()
-
-        # Start auto-discovery
         self._discovery_svc = DiscoveryService(self._on_discover)
         self._discovery_svc.start()
-
         self.log(f"🌟 {self.pet.name} the {self.pet.species} has been born!")
         self.log(f"   {self.pet.get_personality_description()}")
-        self.log("? help | f feed | p play | s sleep | v visit | q quit")
+        self.log("Press keys: [bold]f[/]eed [bold]p[/]lay [bold]s[/]leep [bold]v[/]isit [bold]t[/]rain [bold]?[/]help [bold]q[/]uit")
 
-        while self.running:
-            self.max_y, self.max_x = screen.getmaxyx()
-            self._handle_input()
-            dt = min(time.time() - self.last_tick, 0.1)
-            self.last_tick = time.time()
-            self.pet.tick(dt)
-            self._wander(dt)
-            self.particles.update(dt)
-            # Autosave every ~30s
-            if time.time() - self._last_save > 30:
-                save_pet(self.pet)
-                self._last_save = time.time()
-            self._render()
-            time.sleep(0.04)
+        self.running = True
+        self.last_tick = time.time()
+        self._last_save = time.time()
+
+        with Live(self._build_layout(), console=self.console, refresh_per_second=15,
+                  screen=True, transient=False) as live:
+            self.live = live
+            while self.running:
+                self._handle_input()
+                dt = min(time.time() - self.last_tick, 0.1)
+                self.last_tick = time.time()
+                self.pet.tick(dt)
+                # Animation
+                self.anim_timer += dt
+                if self.anim_timer > 1.5:
+                    self.anim_timer = 0.0
+                    self.anim_frame = (self.anim_frame + 1) % 2
+                # Autosave
+                if time.time() - self._last_save > 30:
+                    save_pet(self.pet)
+                    self._last_save = time.time()
+                live.update(self._build_layout())
+                time.sleep(0.06)
 
     def _on_discover(self, host: str, port: int, pet_name: str):
         self.society.add_discovered(host, port, pet_name)
         self.log(f"🔍 Discovered {pet_name} at {host}:{port}")
 
-    # ── Colors ──
-
-    def _init_colors(self):
-        curses.start_color()
-        curses.use_default_colors()
-        for n, (fg, bg) in enumerate([
-            (curses.COLOR_CYAN, -1), (curses.COLOR_GREEN, -1),
-            (curses.COLOR_YELLOW, -1), (curses.COLOR_RED, -1),
-            (curses.COLOR_MAGENTA, -1), (curses.COLOR_BLUE, -1),
-            (curses.COLOR_WHITE, -1),
-        ], 1):
-            curses.init_pair(n, fg, bg)
-        # Build actual mood color map
-        self._mood_colors = {}
-        for mood, (cid, bold) in MOOD_COLOR_IDS.items():
-            attr = curses.color_pair(cid)
-            if bold:
-                attr |= curses.A_BOLD
-            self._mood_colors[mood] = attr
-
     # ── Input ──
 
     def _handle_input(self):
+        import sys, termios, tty, select
+        if not sys.stdin.isatty():
+            return
         try:
-            ch = self.screen.getch()
+            fd = sys.stdin.fileno()
+            old = termios.tcgetattr(fd)
+            tty.setcbreak(fd)
+            r, _, _ = select.select([sys.stdin], [], [], 0.01)
+            ch = sys.stdin.read(1) if r else None
+            termios.tcsetattr(fd, termios.TCSADRAIN, old)
         except Exception:
             return
-        if ch == -1:
+        if not ch:
             return
 
         if self.input_mode:
-            self._input_mode_key(ch)
+            if ch == '\n' or ch == '\r':
+                cmd = self.input_buffer.strip()
+                self.input_buffer = ""
+                self.input_mode = False
+                if cmd:
+                    self._process_command(cmd)
+            elif ch == '\x1b':
+                self.input_buffer = ""
+                self.input_mode = False
+            elif ch in ('\x7f', '\x08'):
+                self.input_buffer = self.input_buffer[:-1]
+            elif ch.isprintable():
+                self.input_buffer += ch
             return
 
-        key = chr(ch).lower() if 32 <= ch <= 126 else None
-        if key is None:
-            return
-
+        key = ch.lower()
         actions = {
-            'q': lambda: self._quit(),
-            'f': lambda: self._do_action(self.pet.feed, "🍽️"),
-            'p': lambda: self._do_action(self.pet.play, "✨"),
-            's': lambda: self._do_action(self.pet.sleep, "", particles=False),
+            'q': self._quit,
+            'f': self._feed,
+            'p': self._play,
+            's': self._sleep,
             'v': self._start_visit,
             '?': self._show_help,
             'l': self._list_pets,
@@ -164,30 +182,17 @@ class TerminalUI:
         if action:
             action()
 
-    def _input_mode_key(self, ch: int):
-        if ch == 10:  # Enter
-            cmd = self.input_buffer.strip()
-            self.input_buffer = ""
-            self.input_mode = False
-            if cmd:
-                self._process_command(cmd)
-        elif ch == 27:  # Esc
-            self.input_buffer = ""
-            self.input_mode = False
-        elif ch in (127, 8):  # Backspace
-            self.input_buffer = self.input_buffer[:-1]
-        elif 32 <= ch <= 126:
-            self.input_buffer += chr(ch)
+    def _feed(self):
+        self.log(self.pet.feed())
 
-    def _do_action(self, action_fn, particle_char: str, particles: bool = True):
-        msg = action_fn()
-        self.log(msg)
-        if particles:
-            self.particles.spawn(self.px, self.py, particle_char, 4)
+    def _play(self):
+        self.log(self.pet.play())
+
+    def _sleep(self):
+        self.log(self.pet.sleep())
 
     def _quit(self):
         self.running = False
-        self.log("💾 Saving pet... Goodbye!")
         save_pet(self.pet)
         if self._discovery_svc:
             self._discovery_svc.stop()
@@ -195,26 +200,25 @@ class TerminalUI:
     def _start_visit(self):
         self.input_mode = True
         self.input_buffer = ""
-        # Show discovered hosts
         if self.society.discovered_hosts:
-            self.log("Discovered pets nearby:")
+            self.log("[bold]Discovered nearby:[/bold]")
             for addr, name in list(self.society.discovered_hosts.items())[:5]:
                 self.log(f"  {name} @ {addr}")
-        self.log("Enter address (host:port) or /scan:")
+        self.log("Enter [bold]host:port[/bold] or [bold]/scan[/bold]:")
 
     def _show_help(self):
         for line in [
-            "── Controls ──",
-            " f feed  p play  s sleep  v visit  t learn",
-            " d discovered  l saved pets  ? help  q quit",
-            "── Visit ──",
-            " host:port  visit pet    /scan  scan network",
+            "[bold]── Controls ──[/bold]",
+            "[bold]f[/] feed  [bold]p[/] play  [bold]s[/] sleep  [bold]v[/] visit  [bold]t[/] train",
+            "[bold]d[/] discovered  [bold]l[/] saved  [bold]?[/] help  [bold]q[/] quit",
+            "[bold]── Visit ──[/bold]",
+            "  host:port  visit pet   [bold]/scan[/]  scan network",
         ]:
             self.log(line)
 
     def _list_pets(self):
         pets = list_saved_pets()
-        self.log("── Saved Pets ──")
+        self.log("[bold]── Saved Pets ──[/bold]")
         for name, updated in pets:
             ts = time.strftime("%Y-%m-%d %H:%M", time.localtime(updated))
             self.log(f"  🐾 {name} (last: {ts})")
@@ -229,13 +233,11 @@ class TerminalUI:
 
     def _show_discovered(self):
         if not self.society.discovered_hosts:
-            self.log("No pets discovered yet. Use /scan or wait for auto-discovery.")
+            self.log("No pets discovered yet. Use [bold]/scan[/bold] or wait.")
             return
-        self.log("── Discovered Pets ──")
+        self.log("[bold]── Discovered ──[/bold]")
         for addr, name in self.society.discovered_hosts.items():
             self.log(f"  🐾 {name} @ {addr}")
-
-    # ── Commands ──
 
     def _process_command(self, cmd: str):
         self.log(f"> {cmd}")
@@ -254,16 +256,13 @@ class TerminalUI:
             self._visit_pet(cmd)
 
     def _visit_pet(self, address: str):
-        import asyncio
         host, _, port_str = address.partition(":")
         port = int(port_str) if port_str.isdigit() else DEFAULT_PORT
-
         try:
             loop = asyncio.new_event_loop()
             result = loop.run_until_complete(
                 PetClient().visit_pet(host, port, self.pet.to_dict(), timeout=3.0))
             loop.close()
-
             if result and "error" not in result:
                 rp = result.get("pet", {})
                 self.society.add_visitor(rp)
@@ -276,194 +275,128 @@ class TerminalUI:
         except Exception as e:
             self.log(f"❌ Connection failed: {e}")
 
-    # ── Movement ──
+    # ── Layout Builder ──
 
-    def _wander(self, dt: float):
-        if random.random() < 0.02:
-            self.ptx = random.uniform(3, max(3, self.art_w - 3))
-            self.pty = random.uniform(2, max(2, self.art_h - 2))
-        dx, dy = self.ptx - self.px, self.pty - self.py
-        self.pvx += dx * 0.08 * dt
-        self.pvy += dy * 0.08 * dt
-        self.pvx *= 0.92
-        self.pvy *= 0.92
-        self.px += self.pvx
-        self.py += self.pvy
-        self.px = max(0, min(self.px, max(0, self.art_w - 1)))
-        self.py = max(0, min(self.py, max(0, self.art_h - 1)))
+    def _build_layout(self) -> Table:
+        """Build the full Rich renderable layout."""
+        mood = self.pet.mood
+        border = MOOD_BORDER_COLOR.get(mood, "white")
+        style = MOOD_STYLE.get(mood, Style())
 
-    # ── Rendering ──
+        main = Table.grid(padding=0)
+        main.add_column(ratio=1)  # Left: pet art
+        main.add_column(ratio=1)  # Right: stats + traits
 
-    def _render(self):
-        if not self.screen:
-            return
-        self.screen.erase()
-        h, w = self.max_y, self.max_x
-        pet_w = int(w * 0.55)
-        side_w = w - pet_w - 1
-        self.art_w, self.art_h = pet_w - 2, h - 5
+        # ── Left: Pet Art Panel ──
+        art = get_art(self.pet.species, mood, self.anim_frame)
+        art_text = Text(art.strip(), style=style, justify="center")
+        title = f"{self.pet.get_species_emoji()} {self.pet.name}"
+        pet_panel = Panel(
+            Align.center(art_text, vertical="middle"),
+            title=title,
+            title_align="left",
+            border_style=border,
+            box=ROUNDED,
+            padding=(1, 2),
+        )
+        main.add_row(pet_panel, self._build_right_panel(border, mood))
 
-        # Left: pet area
-        self._draw_pet_area(pet_w, h)
-        # Right: stats + traits
-        sx = pet_w + 1
-        self._draw_stats(sx, side_w, h)
-        self._draw_traits(sx, side_w, h)
-        # Bottom: log
-        self._draw_log(w, h)
-        # Particles
-        self._draw_particles()
-        # Input bar
-        self._draw_input_bar(w, h)
-        # Visitors
-        if self.society.visiting_pets:
-            txt = " 🐾 " + ", ".join(self.society.visiting_pets.keys())
-            self._safe_add(0, max(0, w - len(txt) - 2), txt,
-                           curses.color_pair(C_GREEN) | curses.A_BOLD)
-        self.screen.refresh()
+        # ── Bottom: Log ──
+        log_lines = "\n".join(self.messages[-8:]) if self.messages else "No messages yet"
+        log_panel = Panel(
+            Text(log_lines, style="dim"),
+            title="📋 Log",
+            title_align="left",
+            border_style="grey50",
+            box=ROUNDED,
+            height=10,
+        )
+        main.add_row(log_panel, None)  # span both columns would be nice but grid doesn't support colspan
 
-    def _draw_pet_area(self, pet_w: int, h: int):
-        box = self.screen.subwin(h - 4, pet_w, 0, 0)
-        box.box()
-        self._safe_add(box, 0, 2, f"{self.pet.get_species_emoji()} {self.pet.name}  ",
-                       curses.color_pair(C_PET_TITLE) | curses.A_BOLD)
+        return main
 
-        art = get_art(self.pet.species, self.pet.mood, self.pet.anim_frame)
-        lines = art.strip("\n").split("\n")
-        float_y = int(math.sin(time.time() * 2.0) * 1.5)
-        start_y = max(1, (h - 6) // 2 - len(lines) // 2 + float_y)
+    def _build_right_panel(self, border: str, mood: str) -> Panel:
+        """Build the right-side panel with stats and traits."""
+        bar_color = MOOD_BAR_COLOR.get(mood, "grey70")
 
-        for i, line in enumerate(lines):
-            x = max(1, (pet_w - len(line)) // 2)
-            y = start_y + i
-            if 1 <= y < h - 5:
-                color = self._mood_colors.get(self.pet.mood, curses.color_pair(C_WHITE))
-                self._safe_add(box, y, x, line, color)
+        right_table = Table.grid(padding=(0, 1))
+        right_table.add_column(style="bold")
+        right_table.add_column()
 
-    def _draw_stats(self, sx: int, side_w: int, h: int):
-        stats_h = 11
-        box = self.screen.subwin(stats_h, side_w, 0, sx)
-        box.box()
-        self._safe_add(box, 0, 2, " Stats ", curses.color_pair(C_MAGENTA) | curses.A_BOLD)
+        # ── Stage & Level ──
+        stage_text = Text()
+        stage_text.append(self.pet.get_evolution_name(), style=MOOD_STYLE.get(mood, Style()))
+        stage_text.append(f"  Lv.{self.pet.level}  ")
+        stage_text.append(f"XP: {self.pet.xp}", style="dim")
+        right_table.add_row("", stage_text)
+        right_table.add_row("", Text(f"{MOOD_EMOJIS.get(mood, '😐')} {mood}", style=MOOD_STYLE.get(mood, Style())))
 
-        lines = [
-            f"  {self.pet.get_evolution_name()}",
-            f"  Lv.{self.pet.level}  XP: {self.pet.xp}",
-            f"  {MOOD_EMOJIS.get(self.pet.mood, '😐')} {self.pet.mood}",
-            "",
-        ]
-        for i, line in enumerate(lines):
-            self._safe_add(box, i + 1, 1, line[:side_w - 2])
+        right_table.add_row("", "")
 
-        bars = [
-            ("🍖 Hunger", self.pet.hunger, True,   # inverted: low=good
-             [(50, C_GREEN), (80, C_YELLOW), (100, C_RED)]),
-            ("😊 Happy",  self.pet.happiness, False,
-             [(50, C_RED), (100, C_GREEN)]),
-            ("⚡ Energy", self.pet.energy, False,
-             [(50, C_YELLOW), (100, C_CYAN)]),
-            ("🧠 Brain",  self.pet.intelligence, False,
-             [(100, C_MAGENTA)]),
-        ]
-        bar_w = side_w - 16
-        for i, (label, val, invert, thresholds) in enumerate(bars):
-            y = i + 5
-            if y >= stats_h - 1:
-                break
-            pct = (100 - val) / 100 if invert else val / 100
-            filled = max(0, min(bar_w, int(bar_w * pct)))
-            bar = "█" * filled + "░" * max(0, bar_w - filled)
-            # Find color for current value
-            color = C_WHITE
+        # ── Stat bars ──
+        for icon, label, val, inverted, thresholds in [
+            ("🍖", "Hunger", self.pet.hunger, True,
+             [(50, "green"), (80, "yellow"), (100, "red")]),
+            ("😊", "Happy",  self.pet.happiness, False,
+             [(50, "red"), (100, "green")]),
+            ("⚡", "Energy", self.pet.energy, False,
+             [(50, "yellow"), (100, "cyan")]),
+            ("🧠", "Brain",  self.pet.intelligence, False,
+             [(100, "magenta")]),
+        ]:
+            pct = (100 - val) / 100 if inverted else val / 100
+            # Find bar color
+            bcol = bar_color
             for thresh, c in thresholds:
                 if val < thresh:
-                    color = c
+                    bcol = c
                     break
-            self._safe_add(box, y, 1, f" {label[:10]:10s}")
-            self._safe_add(box, y, 14, bar, curses.color_pair(color) | curses.A_BOLD)
+            bar = ProgressBar(total=100, completed=int(pct * 100), width=20)
+            bar.style = Style(color=bcol)
+            right_table.add_row(
+                Text(f" {icon} {label}", style="bold"),
+                bar,
+            )
 
-    def _draw_traits(self, sx: int, side_w: int, h: int):
-        ty = 12
-        trait_h = 9
-        box = self.screen.subwin(trait_h, side_w, ty, sx)
-        box.box()
-        self._safe_add(box, 0, 2, " Traits ", curses.color_pair(C_MAGENTA) | curses.A_BOLD)
+        right_table.add_row("", "")
 
+        # ── Traits ──
         order = ["discipline", "creativity", "social", "curiosity", "aggression", "laziness"]
-        bar_w = side_w - 16
-        for i, trait in enumerate(order):
+        for trait in order:
             val = self.pet.traits.get(trait, 0)
             icon = TRAIT_ICONS.get(trait, "•")
-            filled = int(bar_w * val / 100) if bar_w > 0 else 0
-            bar = "█" * filled + "░" * max(0, bar_w - filled)
-            self._safe_add(box, i + 1, 1, f" {icon} {trait[:8]:8s}{bar}")
-
-    def _draw_log(self, w: int, h: int):
-        log_y = h - 10
-        log_h = h - log_y - 1
-        if log_h < 3:
-            return
-        box = self.screen.subwin(log_h, w, log_y, 0)
-        box.box()
-        self._safe_add(box, 0, 2, " Log ", curses.color_pair(C_MAGENTA) | curses.A_BOLD)
-        visible = log_h - 2
-        recent = self.messages[-visible:]
-        for i, msg in enumerate(recent):
-            self._safe_add(box, i + 1, 1, msg[:w - 2])
-
-    def _draw_particles(self):
-        for p in self.particles.particles:
-            x, y = int(p["x"]), int(p["y"])
-            if 0 <= x < self.max_x and 0 <= y < self.max_y:
-                alpha = int(p["life"] * 5) % 7 + 1
-                try:
-                    self.screen.addstr(y, x, p["char"], curses.color_pair(alpha))
-                except curses.error:
-                    pass
-
-    def _draw_input_bar(self, w: int, h: int):
-        if self.input_mode:
-            prompt = f"> {self.input_buffer}_"
-            self._safe_add(h - 1, 1, prompt[:w - 2], curses.A_REVERSE)
-        else:
-            self._safe_add(h - 1, 1,
-                          " f:feed p:play s:sleep v:visit t:learn d:discovered ?:help q:quit "[:w - 2],
-                          curses.color_pair(C_WHITE))
-
-    def _safe_add(self, win, y: int, x: int, text: str, attr=0):
-        """Add string to a curses window, silently handling boundary errors."""
-        try:
-            if isinstance(win, int):
-                self.screen.addstr(win, x, text, attr)
+            bar = ProgressBar(total=100, completed=val, width=15)
+            if val > 70:
+                bar.style = Style(color="green")
+            elif val > 40:
+                bar.style = Style(color="yellow")
             else:
-                win.addstr(y, x, text, attr)
-        except curses.error:
-            pass
+                bar.style = Style(color="grey50")
+            right_table.add_row(
+                Text(f" {icon} {trait[:8]:8s}"),
+                bar,
+            )
 
+        # ── Visitors ──
+        if self.society.visiting_pets:
+            right_table.add_row("", "")
+            visitors = ", ".join(self.society.visiting_pets.keys())
+            right_table.add_row("", Text(f"🐾 Visitors: {visitors}", style="green"))
 
-# ─── Particles ───
+        # Input bar
+        right_table.add_row("", "")
+        if self.input_mode:
+            right_table.add_row("",
+                Panel(Text(f"> {self.input_buffer}_"), border_style="yellow", box=ROUNDED))
+        else:
+            right_table.add_row("",
+                Text("f:feed p:play s:sleep v:visit ?:help q:quit", style="dim"))
 
-class ParticleSystem:
-    def __init__(self):
-        self.particles: list = []
-
-    def spawn(self, x: float, y: float, char: str, count: int = 3):
-        for _ in range(count):
-            self.particles.append({
-                "x": x + random.uniform(-2, 2),
-                "y": y,
-                "char": char,
-                "vx": random.uniform(-3, 3),
-                "vy": random.uniform(-5, -2),
-                "life": 1.0,
-                "decay": random.uniform(0.3, 0.6),
-            })
-
-    def update(self, dt: float):
-        for p in self.particles[:]:
-            p["x"] += p["vx"] * dt
-            p["y"] += p["vy"] * dt
-            p["vy"] += 1.5 * dt
-            p["life"] -= p["decay"] * dt
-            if p["life"] <= 0:
-                self.particles.remove(p)
+        return Panel(
+            right_table,
+            title="📊 Stats",
+            title_align="left",
+            border_style=border,
+            box=ROUNDED,
+            padding=(1, 1),
+        )
