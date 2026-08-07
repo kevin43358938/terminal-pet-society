@@ -1,0 +1,4 @@
+# Terminal Pet Society - Dependencies
+# Core uses Python stdlib only.
+# Optional: rich for enhanced display.
+rich>=13.0.0
