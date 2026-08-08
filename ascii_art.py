@@ -59,103 +59,111 @@ F = {
 #   Mixed character palette: / \ ( ) | . - _ ' ` ~ ^ , ╱ ╲
 # ═══════════════════════════════════════════════════════════════
 
+# Backslash without escaping headaches
+_ = chr(92)
 BODIES = {
-    # ── CAT: 23 columns wide, perfectly symmetric ──
+    # ── CAT ──
     "cat": [
-        r"      /\_______/\      ",
-        r"     / \       / \     ",
-        r"    /   {eyes}   \    ",
-        r"   (       ω       )   ",
-        r"    \             /    ",
-        r"     \___________/     ",
-        r"    (,,,)     (,,,)    ",
-        r"         {decor}        ",
+        f"       /{_}{_}_______{_}{_}/       ",
+        f"      / ╲       ╱ {_}      ",
+        f"     /   {{eyes}}   {_}     ",
+        f"    (      ω        )    ",
+        f"     {_}    ╰───╯    /     ",
+        f"    __{_}___________/__    ",
+        f"   ╱                 ╲   ",
+        f"  (,,,)           (,,,)  ",
+        f"        {{decor}}          ",
     ],
 
-    # ── DOG: 23 columns wide, perfectly symmetric ──
+    # ── DOG ──
     "dog": [
-        r"      ___       ___      ",
-        r"     /   \_____/   \     ",
-        r"    /               \    ",
-        r"   (    {eyes}    )   ",
-        r"    \       ⌂       /    ",
-        r"     \_____________/     ",
-        r"    (,,,)     (,,,)    ",
-        r"         {decor}        ",
+        f"       ___     ___       ",
+        f"      /   ╲___╱   {_}      ",
+        f"     /             {_}     ",
+        f"    (    {{eyes}}    )    ",
+        f"     {_}     ⌂       /     ",
+        f"    __{_}___╰───╯___/__    ",
+        f"   ╱                 ╲   ",
+        f"  (,,,)           (,,,)  ",
+        f"        {{decor}}          ",
     ],
 
-    # ── DRAGON: 33 columns wide, perfectly symmetric ──
+    # ── DRAGON ──
     "dragon": [
-        r"        /\___________/\        ",
-        r"       / \           / \       ",
-        r"      /   {eyes}    \      ",
-        r"     (        ⌂         )     ",
-        r"      \               /      ",
-        r"       \_____________/       ",
-        r"      /  \           /  \      ",
-        r"     /    \_________/    \     ",
-        r"    (,,,)           (,,,)    ",
-        r"            {decor}           ",
+        f"       /{_}{_}_____________/{_}{_}       ",
+        f"      / ╲             ╱ {_}      ",
+        f"     /     {{eyes}}      {_}     ",
+        f"    (        ⌂            )    ",
+        f"     {_}      ╰───╯        /     ",
+        f"   ___{_}╲               ╱/___   ",
+        f" ╱    {_} ╲_____________╱ /    ╲ ",
+        f"╱ ╱╲   {_}       |       /   ╱╲ ╲",
+        f"╲╱    {_}___|_____|_____|___/    ╲╱",
+        f"          (,,,)   (,,,)          ",
+        f"             {{decor}}             ",
     ],
 
-    # ── SLIME: fluid blob, 24 columns wide ──
+    # ── SLIME ──
     "slime": [
-        r"      .---''''---.      ",
-        r"    .'             '.    ",
-        r"   /    {eyes}    \   ",
-        r"  (        ⌂         )  ",
-        r"   \               /   ",
-        r"    '-._       _.-'    ",
-        r"        '-------'       ",
-        r"         {decor}         ",
+        f"        .─-──────-─.        ",
+        f"      .´            `.      ",
+        f"     /     {{eyes}}     {_}     ",
+        f"    (         ⌂        )    ",
+        f"     {_}      ╰───╯     /     ",
+        f"      `.._        _..´      ",
+        f"         `─-────-─´         ",
+        f"          {{decor}}           ",
     ],
 
-    # ── GHOST: classic sheet, 24 columns wide ──
+    # ── GHOST ──
     "ghost": [
-        r"      .-~~~~~~-.      ",
-        r"    .'          '.    ",
-        r"   /   {eyes}    \   ",
-        r"  (       ⌂        )  ",
-        r"   \             /   ",
-        r"    '.         .'    ",
-        r"     ~  ~   ~  ~     ",
-        r"        {decor}       ",
+        f"        .─-──────-─.        ",
+        f"      .´            `.      ",
+        f"     /     {{eyes}}     {_}     ",
+        f"    (         ⌂        )    ",
+        f"     {_}      ╰───╯     /     ",
+        f"      ╲              ╱      ",
+        f"       ~ ~ ~    ~ ~ ~       ",
+        f"          {{decor}}           ",
     ],
 
-    # ── ROBOT: antenna, screen, legs, 23 columns wide ──
+    # ── ROBOT ──
     "robot": [
-        r"       .-------.       ",
-        r"      |  {eyes}  |      ",
-        r"      |   [⌂]   |      ",
-        r"      |_________|      ",
-        r"       |       |       ",
-        r"      [_]     [_]      ",
-        r"         {decor}        ",
+        f"         ┌───────┐          ",
+        f"     ╔═══╧═══════╧═══╗      ",
+        f"     ║    {{eyes}}     ║      ",
+        f"     ║      [⌂]      ║      ",
+        f"     ╚═══╤═══════╤═══╝      ",
+        f"      ___│       │___       ",
+        f"     [___]       [___]      ",
+        f"          {{decor}}           ",
     ],
 
-    # ── UNICORN: horn, mane, slender, 26 columns wide ──
+    # ── UNICORN ──
     "unicorn": [
-        r"           .|.           ",
-        r"           \|/           ",
-        r"           {eyes}           ",
-        r"       .   ⌂   .       ",
-        r"      /|\     /|\      ",
-        r"     / | \___/ | \     ",
-        r"    (,,)       (,,)    ",
-        r"          {decor}         ",
+        f"              ✦               ",
+        f"             / {_}              ",
+        f"       /{_}{_}___/ ⌂ {_}{_}___/        ",
+        f"      / ╲           ╱ {_}       ",
+        f"     /     {{eyes}}      {_}     ",
+        f"    (                   )     ",
+        f"     {_}       ω         /      ",
+        f"      {_}_____╰───╯_____/       ",
+        f"          (,,) (,,)           ",
+        f"           {{decor}}            ",
     ],
 
-    # ── PENGUIN: round, flippers, 24 columns wide ──
+    # ── PENGUIN ──
     "penguin": [
-        r"       ._______.       ",
-        r"     .'         '.     ",
-        r"    /   {eyes}   \    ",
-        r"   (      ⌂       )   ",
-        r"    \           /    ",
-        r"     '.       .'     ",
-        r"       '.___.'       ",
-        r"       (,,) (,,)      ",
-        r"         {decor}        ",
+        f"         .─────────.         ",
+        f"       .´           `.       ",
+        f"      /    {{eyes}}     {_}      ",
+        f"     (       ⌂         )     ",
+        f"     |╲     ╰───╯     ╱|     ",
+        f"     | ╲             ╱ |     ",
+        f"     |__╲___________╱__|     ",
+        f"         (,,)   (,,)         ",
+        f"           {{decor}}           ",
     ],
 }
 
@@ -184,17 +192,11 @@ def _build() -> dict:
                     line = line.replace("{eyes}", eye_str)
                     line = line.replace("{decor}", dec_str or "")
                     lines.append(line)
-                # Find common leading whitespace and strip it (center-align the art)
-                min_lead = min(len(l) - len(l.lstrip()) for l in lines if l.strip())
-                stripped = [l[min_lead:] for l in lines]
-                # Pad all lines to same width (preserve trailing space alignment!)
-                max_w = max(len(l) for l in stripped) if stripped else 0
-                stripped = [l.ljust(max_w) for l in stripped]
                 # Strip trailing empty lines when no decor
                 if not dec_str:
-                    while stripped and stripped[-1].strip() == "":
-                        stripped.pop()
-                return "\n".join(stripped)
+                    while lines and lines[-1].strip() == "":
+                        lines.pop()
+                return "\n".join(lines)
 
             if mood in MULTI_FRAME_MOODS:
                 # ── 4-frame animation: breathing / movement ──
