@@ -21,7 +21,7 @@ from rich.box import Box, ROUNDED, HEAVY, DOUBLE, SQUARE
 from rich.color import Color
 
 from pet import Pet, PetSociety, TRAIT_ICONS, MOOD_EMOJIS
-from ascii_art import get_art
+from ascii_art import get_art, get_frame_count
 from persistence import save_pet, list_saved_pets
 from network import scan_network, PetClient, DEFAULT_PORT, DiscoveryService
 from watcher import get_recent_commands
@@ -120,7 +120,8 @@ class TerminalUI:
                 self.anim_timer += dt
                 if self.anim_timer > 1.5:
                     self.anim_timer = 0.0
-                    self.anim_frame = (self.anim_frame + 1) % 2
+                    fc = get_frame_count(self.pet.species, self.pet.mood)
+                self.anim_frame = (self.anim_frame + 1) % max(fc, 1)
                 # Autosave
                 if time.time() - self._last_save > 30:
                     save_pet(self.pet)

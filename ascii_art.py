@@ -1,6 +1,7 @@
 """
-Terminal Pet Society — Detailed Chunky Pixel Art
-6-7 line sprites. Block characters. Ears, wings, tails, paws — all visible.
+Terminal Pet Society — Expressive Line-Art Sprites
+Distinct silhouettes per species. Curves, slashes, brackets, dots — not just blocks.
+4-frame breathing/movement for idle + playful. 2-frame blink for others.
 """
 
 from enum import Enum
@@ -32,139 +33,191 @@ class Species(Enum):
     PENGUIN = "penguin"
 
 
-# ════════════════════════════════════
-# Faces: (eyes, decor, blink_eyes)
-# ════════════════════════════════════
+# ═══════════════════════════════════════════════════════════════
+# Faces  ─  (eyes, decor, blink_eyes, blink_decor)
+#   idle & playful get 4 frames from _build()
+#   all others get 2 frames
+# ═══════════════════════════════════════════════════════════════
 
 F = {
-    "idle":    ("◉ ◉", "",    "⊙ ⊙"),
-    "happy":   ("★ ★", "♡",   None),
-    "hungry":  ("◎ ◎", "🍖",  None),
-    "sleepy":  ("~ ~", "💤",  None),
-    "excited": ("☆ ☆", "✨",  None),
-    "sad":     ("◒ ◒", "💧",  None),
-    "coding":  ("◈ ◈", "💻",  None),
-    "playful": ("▼ ▼", "🎾",  None),
-    "sick":    ("× ×", "🤒",  None),
-    "dead":    ("† †", "👼",  None),
+    "idle":    ("◉  ◉",  "",     "⊙  ⊙",  ""),       # wide eyes → soft blink
+    "happy":   ("^  ▽  ^","♡",   "⌒  ⌒",  "♡"),      # squinty smile
+    "hungry":  ("◒  ◒",  "🍖",   "◓  ◓",  "🍖"),      # pleading, then hungrier
+    "sleepy":  ("—  —",  "💤",   "‿  ‿",  "💤"),      # flat eyes → content
+    "excited": ("★  ★",  "✨",   "☆  ☆",  "✨✨"),     # starry → super sparkle
+    "sad":     ("╥  ╥",  "💧",   "╥  _  ╥","💧💧"),    # crying → sobbing
+    "coding":  ("◈  ◈",  "💻",   "◉  ◉",  "💻"),      # focused → intense
+    "playful": ("▼  ▼",  "🎾",   "▽  ▽",  " 🎾"),     # mischevious → wiggly
+    "sick":    ("x  x",  "🤒",   "+  +",  "🤒"),      # dead eyes → dazed
+    "dead":    ("✝  ✝",  "👼",   "✝  _  ✝",""),       # RIP → eternal rest
 }
 
 
-# ════════════════════════════════════
-# Bodies — {eyes} = face, {decor} = mood icon
-# ════════════════════════════════════
+# ═══════════════════════════════════════════════════════════════
+# Bodies  ─  {eyes} = face, {decor} = mood decor
+#   Distinct silhouettes: ears, wings, tails, fins, horns.
+#   Mixed character palette: / \ ( ) | . - _ ' ` ~ ^ , ╱ ╲
+# ═══════════════════════════════════════════════════════════════
 
 BODIES = {
+    # ── CAT: pointy ears, whisker arcs, curvy sitting body, tail ──
     "cat": [
-        "  ▄▀▀▀▀▀▀▄  ",
-        " ▐█  {eyes}  █▌ ",
-        " ▐█   ⌂   █▌ ",
-        "  █▄▄▄▄▄▄█  ",
-        "   ▐█  █▌   ",
-        "    ▀▄▄▀    ",
-        "    {decor}    ",
+        "     ╱╲      ╱╲     ",
+        "    ╱  ╲____╱  ╲    ",
+        "   (   {eyes}   )   ",
+        "    )    ω    (    ",
+        "   (  ╲______╱  )   ",
+        "    ╲__________╱    ",
+        "      ╲      ╱      ",
+        "       {decor}       ",
     ],
 
+    # ── DOG: floppy ears, broad snout, sturdy body, tail wag ──
     "dog": [
-        " ▄▀▀▀▀▀▀▀▀▄ ",
-        "▐█   {eyes}   █▌",
-        "▐█    ⌂    █▌",
-        " █▄▄▄▄▄▄▄▄█ ",
-        "  ▐█▄▄▄▄█▌  ",
-        "   {decor}   ",
+        "     __        __     ",
+        "   _/  ╲______╱  ╲_   ",
+        "  /              ╲  ",
+        " (    {eyes}    ) ",
+        "  ╲      ⌂      ╱  ",
+        "   ╲___________╱   ",
+        "    /         ╲    ",
+        "    {decor}         ",
     ],
 
+    # ── DRAGON: wings, horns, scales along spine, wide stance ──
     "dragon": [
-        "    ▄▀▀▀▀▄    ",
-        " ▄█▀ {eyes} ▀█▄ ",
-        "▐██   ⌂   ██▌",
-        " ▀█▄▄▄▄▄▄█▀ ",
-        "   ▐█  █▌   ",
-        "    ▀▄▄▀    ",
-        "    {decor}    ",
+        "         ╱╲          ",
+        "    ╱╲  _╱╲╲_  ╱╲    ",
+        "   ╱  ╲╱ ╱╲ ╲╱  ╲   ",
+        "  (    {eyes}    )  ",
+        "   ╲     ⌂     ╱   ",
+        "    ╲╲________╱╱    ",
+        "      ╱      ╲      ",
+        "      {decor}       ",
     ],
 
+    # ── SLIME: fluid blob, drips below, wobbling outline ──
     "slime": [
-        "   .-~~~~~-.   ",
-        "  (  {eyes}  )  ",
-        "   \\   ⌂   /   ",
-        "    \\_____/    ",
-        "     {decor}     ",
+        "     .---'''---.     ",
+        "   .'           '.   ",
+        "  (    {eyes}    )  ",
+        "   '-._   ⌂   _.-'   ",
+        "      '-------'      ",
+        "       ╲     ╱       ",
+        "        {decor}        ",
     ],
 
+    # ── GHOST: classic sheet, wavy hem, tiny stub arms ──
     "ghost": [
-        "   .-~~~~~~-.   ",
-        "  (   {eyes}   )  ",
-        "   \\   ⌂   /   ",
-        "    \\_..._/    ",
-        "     ~    ~     ",
-        "     {decor}     ",
+        "      .-~~~~~~-.      ",
+        "    .'          '.    ",
+        "   (    {eyes}    )   ",
+        "    ╲     ⌂     ╱    ",
+        "     ╲. .─. . .╱     ",
+        "      ~       ~      ",
+        "       {decor}       ",
     ],
 
+    # ── ROBOT: antenna, screen face (╔═╗ frame), block legs ──
     "robot": [
-        "   ╔════════╗   ",
-        "   ║  {eyes}  ║   ",
-        "   ║   [⌂]  ║   ",
-        "   ╚══╦══╦══╝   ",
-        "     ╔╝  ╚╗     ",
-        "     {decor}     ",
+        "         ┌─┐          ",
+        "     ╔═══╧═╧═══╗      ",
+        "     ║ {eyes} ║      ",
+        "     ║   [⌂]   ║      ",
+        "     ╚══╤═══╤══╝      ",
+        "       ╔╧╗   ╔╧╗      ",
+        "       {decor}        ",
     ],
 
+    # ── UNICORN: majestic spiral horn, flowing mane, slender legs ──
     "unicorn": [
-        "      ✦✦✦      ",
-        "   ▄█▀ {eyes} ▀█▄   ",
-        "  ▐██  ⌂  ██▌  ",
-        "   ▀█▄▄▄▄▄█▀   ",
-        "     ▐▌  ▐▌    ",
-        "     {decor}     ",
+        "          ✦           ",
+        "         ╱│╲          ",
+        "        ╱ │ ╲         ",
+        "       ( {eyes} )        ",
+        "        ╲ ⌂ ╱         ",
+        "         ╲│╱          ",
+        "        ╱   ╲         ",
+        "        {decor}        ",
     ],
 
+    # ── PENGUIN: round body, flipper wings, tiny feet ──
     "penguin": [
-        "    ▄▀▀▀▀▀▀▄    ",
-        "   █  {eyes}  █   ",
-        "   █   ⌂   █   ",
-        "   █▄▄▄▄▄▄▄█   ",
-        "    ▐█    █▌   ",
-        "    {decor}    ",
+        "        .-~~~-.        ",
+        "      .'       '.      ",
+        "     (   {eyes}   )     ",
+        "      '.   ⌂   .'      ",
+        "        '._._.'        ",
+        "        (     )        ",
+        "        {decor}         ",
     ],
 }
 
 
-def _build() -> dict:
-    art = {}
-    for sp, body_lines in BODIES.items():
-        art[sp] = {}
-        for mood, face_data in F.items():
-            eyes, decor = face_data[0], face_data[1]
-            blink = face_data[2] if len(face_data) > 2 else None
+# ═══════════════════════════════════════════════════════════════
+# Build the final PET_ART dictionary from templates
+# ═══════════════════════════════════════════════════════════════
 
-            def make(eye_str: str, dec: str) -> str:
+MULTI_FRAME_MOODS = {"idle", "playful"}
+
+def _build() -> dict:
+    art: Dict[str, Dict[str, List[str]]] = {}
+
+    for species, body_lines in BODIES.items():
+        art[species] = {}
+
+        for mood, face_data in F.items():
+            eyes      = face_data[0]
+            decor     = face_data[1]
+            blink     = face_data[2] if len(face_data) > 2 else None
+            bdecor    = face_data[3] if len(face_data) > 3 else None
+
+            def make(eye_str: str, dec_str: str) -> str:
                 lines = []
                 for line in body_lines:
-                    line = line.replace("{eyes}", eye_str).replace("{decor}", dec or "")
+                    line = line.replace("{eyes}", eye_str)
+                    line = line.replace("{decor}", dec_str or "")
                     lines.append(line)
-                if not dec:
+                # Strip trailing empty lines when no decor
+                if not dec_str:
                     while lines and lines[-1].strip() == "":
                         lines.pop()
                 return "\n".join(lines)
 
-            frames = [make(eyes, decor)]
-            if blink:
-                frames.append(make(blink, ""))
-            art[sp][mood] = frames
+            if mood in MULTI_FRAME_MOODS:
+                # ── 4-frame animation: breathing / movement ──
+                frames = [
+                    make(eyes, decor),                           # 0: normal
+                    make(blink, bdecor or ""),                   # 1: blink / subtle shift
+                    make(eyes, decor if decor else " "),         # 2: normal + breath exhale
+                    make(blink, bdecor if bdecor else " "),      # 3: blink + breath
+                ]
+            elif blink:
+                frames = [make(eyes, decor), make(blink, bdecor or "")]
+            else:
+                frames = [make(eyes, decor)]
+
+            art[species][mood] = frames
+
     return art
 
 
 PET_ART: Dict[str, Dict[str, List[str]]] = _build()
 
 
+# ═══════════════════════════════════════════════════════════════
+# Public API
+# ═══════════════════════════════════════════════════════════════
+
 def get_art(species: str, mood: str, frame: int = 0) -> str:
+    """Return the ASCII art string for a given species, mood, and frame index."""
     species_art = PET_ART.get(species, PET_ART["cat"])
     mood_frames = species_art.get(mood, species_art.get("idle", [""]))
-    return mood_frames[frame % max(len(mood_frames), 1)] if mood_frames else "  ◉ ◉  "
+    return mood_frames[frame % max(len(mood_frames), 1)]
 
 
 def get_frame_count(species: str, mood: str) -> int:
+    """Return how many animation frames exist for this species/mood combo."""
     species_art = PET_ART.get(species, PET_ART["cat"])
     return len(species_art.get(mood, species_art.get("idle", [""])))
 
