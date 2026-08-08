@@ -278,6 +278,32 @@ class TerminalUI:
 
     # ── Layout Builder ──
 
+    def _build_controls_panel(self) -> Panel:
+        """Bottom bar with key bindings."""
+        keys = [
+            ("[bold bright_white]f[/]", "Feed"),
+            ("[bold bright_white]p[/]", "Play"),
+            ("[bold bright_white]s[/]", "Sleep"),
+            ("[bold bright_white]t[/]", "Train"),
+            ("[bold bright_white]v[/]", "Visit"),
+            ("[bold bright_white]d[/]", "Nearby"),
+            ("[bold bright_white]l[/]", "Saved"),
+            ("[bold bright_white]?[/]", "Help"),
+            ("[bold bright_white]q[/]", "Quit"),
+        ]
+        parts = []
+        for key, desc in keys:
+            parts.append(f"{key} {desc}")
+        text = Text("  │  ".join(parts), style="bold")
+        return Panel(
+            Align.center(text),
+            title="🎮 Controls",
+            title_align="left",
+            border_style="cyan",
+            box=ROUNDED,
+            padding=(0, 2),
+        )
+
     def _build_layout(self) -> Table:
         """Build the full Rich renderable layout."""
         mood = self.pet.mood
@@ -313,6 +339,9 @@ class TerminalUI:
             height=10,
         )
         main.add_row(log_panel, None)  # span both columns would be nice but grid doesn't support colspan
+
+        # ── Bottom: Controls ──
+        main.add_row(self._build_controls_panel(), None)
 
         return main
 
