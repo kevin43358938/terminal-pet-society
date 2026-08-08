@@ -190,11 +190,18 @@ def _build() -> dict:
                     line = line.replace("{eyes}", eye_str)
                     line = line.replace("{decor}", dec_str or "")
                     lines.append(line)
+                # Find common leading whitespace and strip it (center-align the art)
+                stripped = [l.rstrip() for l in lines]
+                min_lead = min((len(l) - len(l.lstrip())) for l in stripped if l.strip())
+                stripped = [l[min_lead:] for l in stripped]
+                # Pad all lines to same width
+                max_w = max(len(l) for l in stripped) if stripped else 0
+                stripped = [l.ljust(max_w) for l in stripped]
                 # Strip trailing empty lines when no decor
                 if not dec_str:
-                    while lines and lines[-1].strip() == "":
-                        lines.pop()
-                return "\n".join(lines)
+                    while stripped and stripped[-1].strip() == "":
+                        stripped.pop()
+                return "\n".join(stripped)
 
             if mood in MULTI_FRAME_MOODS:
                 # ── 4-frame animation: breathing / movement ──
