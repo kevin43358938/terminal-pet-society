@@ -60,96 +60,108 @@ F = {
 # ═══════════════════════════════════════════════════════════════
 
 BODIES = {
-    # ── CAT: pointy ears, whisker arcs, curvy sitting body, tail ──
+    # ── CAT: pointy ears, whiskers, sitting posture, paws ──
     "cat": [
-        "     ╱╲      ╱╲     ",
-        "    ╱  ╲____╱  ╲    ",
-        "   (   {eyes}   )   ",
-        "    )    ω    (    ",
-        "   (  ╲______╱  )   ",
-        "    ╲__________╱    ",
-        "      ╲      ╱      ",
-        "       {decor}       ",
+        "       /\\_______/\\       ",
+        "      / ╲       ╱ \\      ",
+        "     /   {eyes}   \\     ",
+        "    (       ω       )    ",
+        "     \\    ╰───╯    /     ",
+        "    __\\___________/__    ",
+        "   ╱                 ╲   ",
+        "  (,,,)           (,,,)  ",
+        "        {decor}          ",
     ],
 
-    # ── DOG: floppy ears, broad snout, sturdy body, tail wag ──
+    # ── DOG: floppy ears, broad chest, paws ──
     "dog": [
-        "     __        __     ",
-        "   _/  ╲______╱  ╲_   ",
-        "  /              ╲  ",
-        " (    {eyes}    ) ",
-        "  ╲      ⌂      ╱  ",
-        "   ╲___________╱   ",
-        "    /         ╲    ",
-        "    {decor}         ",
+        "       ___     ___       ",
+        "      /   ╲___╱   \\      ",
+        "     /             \\     ",
+        "    (    {eyes}    )    ",
+        "     \\      ⌂      /     ",
+        "    __\\___╰───╯___/__    ",
+        "   ╱                 ╲   ",
+        "  (,,,)           (,,,)  ",
+        "        {decor}          ",
     ],
 
-    # ── DRAGON: wings, horns, scales along spine, wide stance ──
+    # ── DRAGON: full wings, scales, tail, four legs ──
     "dragon": [
-        "         ╱╲          ",
-        "    ╱╲  _╱╲╲_  ╱╲    ",
-        "   ╱  ╲╱ ╱╲ ╲╱  ╲   ",
-        "  (    {eyes}    )  ",
-        "   ╲     ⌂     ╱   ",
-        "    ╲╲________╱╱    ",
-        "      ╱      ╲      ",
-        "      {decor}       ",
+        "       /\\_____________/\\       ",
+        "      / ╲             ╱ \\      ",
+        "     /     {eyes}      \\     ",
+        "    (          ⌂          )    ",
+        "     \\       ╰───╯       /     ",
+        "   ___\\╲               ╱/___   ",
+        " ╱    \\ ╲_____________╱ /    ╲ ",
+        "╱ ╱╲   \\       |       /   ╱╲ ╲",
+        "╲╱    \\___|_____|_____|___/    ╲╱",
+        "          (,,,)   (,,,)          ",
+        "             {decor}             ",
     ],
 
-    # ── SLIME: fluid blob, drips below, wobbling outline ──
+    # ── SLIME: fluid blob, smooth curves, dripping base ──
     "slime": [
-        "     .---'''---.     ",
-        "   .'           '.   ",
-        "  (    {eyes}    )  ",
-        "   '-._   ⌂   _.-'   ",
-        "      '-------'      ",
-        "       ╲     ╱       ",
-        "        {decor}        ",
+        "        .─-──────-─.        ",
+        "      .´            `.      ",
+        "     /     {eyes}     \\     ",
+        "    (         ⌂        )    ",
+        "     \\      ╰───╯     /     ",
+        "      `.._        _..´      ",
+        "         `─-────-─´         ",
+        "          {decor}           ",
     ],
 
-    # ── GHOST: classic sheet, wavy hem, tiny stub arms ──
+    # ── GHOST: classic sheet, wavy hem, floating ──
     "ghost": [
-        "      .-~~~~~~-.      ",
-        "    .'          '.    ",
-        "   (    {eyes}    )   ",
-        "    ╲     ⌂     ╱    ",
-        "     ╲. .─. . .╱     ",
-        "      ~       ~      ",
-        "       {decor}       ",
+        "        .─-──────-─.        ",
+        "      .´            `.      ",
+        "     /     {eyes}     \\     ",
+        "    (         ⌂        )    ",
+        "     \\      ╰───╯     /     ",
+        "      ╲              ╱      ",
+        "       ~ ~ ~    ~ ~ ~       ",
+        "          {decor}           ",
     ],
 
-    # ── ROBOT: antenna, screen face (╔═╗ frame), block legs ──
+    # ── ROBOT: antenna, LCD screen, block legs ──
     "robot": [
-        "         ┌─┐          ",
-        "     ╔═══╧═╧═══╗      ",
-        "     ║ {eyes} ║      ",
-        "     ║   [⌂]   ║      ",
-        "     ╚══╤═══╤══╝      ",
-        "       ╔╧╗   ╔╧╗      ",
-        "       {decor}        ",
+        "         ┌───────┐          ",
+        "     ╔═══╧═══════╧═══╗      ",
+        "     ║    {eyes}     ║      ",
+        "     ║      [⌂]      ║      ",
+        "     ╚═══╤═══════╤═══╝      ",
+        "      ___│       │___       ",
+        "     [___]       [___]      ",
+        "          {decor}           ",
     ],
 
-    # ── UNICORN: majestic spiral horn, flowing mane, slender legs ──
+    # ── UNICORN: spiral horn, flowing mane, slender body ──
     "unicorn": [
-        "          ✦           ",
-        "         ╱│╲          ",
-        "        ╱ │ ╲         ",
-        "       ( {eyes} )        ",
-        "        ╲ ⌂ ╱         ",
-        "         ╲│╱          ",
-        "        ╱   ╲         ",
-        "        {decor}        ",
+        "              ✦               ",
+        "             / \\              ",
+        "       /\\___/ ⌂ \\___/\\        ",
+        "      / ╲           ╱ \\       ",
+        "     /     {eyes}      \\     ",
+        "    (                   )     ",
+        "     \\        ω        /      ",
+        "      \\_____╰───╯_____/       ",
+        "          (,,) (,,)           ",
+        "           {decor}            ",
     ],
 
-    # ── PENGUIN: round body, flipper wings, tiny feet ──
+    # ── PENGUIN: round body, flippers, tiny feet ──
     "penguin": [
-        "        .-~~~-.        ",
-        "      .'       '.      ",
-        "     (   {eyes}   )     ",
-        "      '.   ⌂   .'      ",
-        "        '._._.'        ",
-        "        (     )        ",
-        "        {decor}         ",
+        "         .─────────.         ",
+        "       .´           `.       ",
+        "      /    {eyes}     \\      ",
+        "     (        ⌂        )     ",
+        "     |╲     ╰───╯     ╱|     ",
+        "     | ╲             ╱ |     ",
+        "     |__╲___________╱__|     ",
+        "         (,,)   (,,)         ",
+        "           {decor}           ",
     ],
 }
 
