@@ -19,9 +19,9 @@ import time
 
 from ascii_art import get_all_species
 from pet import Pet, PetSociety
-from persistence import (save_pet, load_pet, list_saved_pets, delete_pet,
-                         get_setting, set_setting)
+from persistence import save_pet, load_pet, list_saved_pets, delete_pet
 from network import PetServer, PetClient, get_local_ip, DEFAULT_PORT
+from tui import TerminalUI
 from watcher import CommandWatcher, get_recent_commands
 
 
@@ -79,29 +79,29 @@ def setup_command_watcher(pet: Pet, log_func) -> CommandWatcher:
     return watcher
 
 
-def setup_network(pet: Pet, society: PetSociety, log_func) -> PetServer:
+def setup_network(pet: Pet, society: PetSociety, log_func, port: int = DEFAULT_PORT) -> PetServer:
     server = PetServer(
         pet_data_provider=lambda: society.get_local_pet_data(),
         on_visitor=lambda data: society.add_visitor(data),
         on_disconnect=lambda name: society.remove_visitor(name),
-        port=DEFAULT_PORT,
+        port=port,
     )
     server.start()
-    log_func(f"🌐 Pet server running on port {DEFAULT_PORT}")
+    log_func(f"🌐 Pet server running on port {port}")
     return server
 
 
-def run_server_only(pet: Pet):
+def run_server_only(pet: Pet, port: int = DEFAULT_PORT):
     society = PetSociety()
     society.set_local_pet(pet)
     print(BANNER)
-    print(f"  🐾 {pet.name} hosting at {get_local_ip()}:{DEFAULT_PORT}")
+    print(f"  🐾 {pet.name} hosting at {get_local_ip()}:{port}")
     print("  Waiting for visitors... (Ctrl+C to stop)\n")
 
     def log_func(msg):
         print(f"  {msg}")
 
-    server = setup_network(pet, society, log_func)
+    server = setup_network(pet, society, log_func, port)
     watcher = setup_command_watcher(pet, log_func)
 
     try:
@@ -116,14 +116,12 @@ def run_server_only(pet: Pet):
         server.stop()
 
 
-def run_tui(pet: Pet):
-    from tui import TerminalUI
-
+def run_tui(pet: Pet, port: int = DEFAULT_PORT):
     society = PetSociety()
     society.set_local_pet(pet)
     tui = TerminalUI(pet, society)
 
-    server = setup_network(pet, society, tui.log)
+    server = setup_network(pet, society, tui.log, port)
     watcher = setup_command_watcher(pet, tui.log)
     save_pet(pet)
 
@@ -185,9 +183,43 @@ def main():
     if not pet_name:
         pets = list_saved_pets()
         if pets:
-            pet = load_pet(pets[0][0])
-            if pet:
-                print(f"\n  📂 Loaded {pet.name} the {pet.species}!")
+            if len(pets) == 1:
+                # Single pet: auto-load
+                pet = load_pet(pets[0][0])
+                if pet:
+                    print(f"\n  📂 Loaded {pet.name} the {pet.species}!")
+            else:
+                # Multiple pets: let user choose
+                print(f"\n  🐾 Found {len(pets)} saved pets:\n")
+                for i, (name, updated) in enumerate(pets, 1):
+                    ts = time.strftime("%Y-%m-%d %H:%M", time.localtime(updated))
+                    print(f"    [{i}] {name} (last: {ts})")
+                print(f"    [n] Create a new pet\n")
+                choice = input(f"  Choose [1-{len(pets)}] or [n]ew: ").strip().lower()
+                if choice == 'n' or choice == 'new':
+                    pet = None  # Will create new below
+                else:
+                    try:
+                        idx = int(choice) - 1
+                        if 0 <= idx < len(pets):
+                            pet = load_pet(pets[idx][0])
+                            if pet:
+                                print(f"\n  📂 Loaded {pet.name} the {pet.species}!")
+                        else:
+                            pet = load_pet(pets[0][0])
+                            if pet:
+                                print(f"\n  📂 Loaded {pet.name} the {pet.species}! (default)")
+                    except ValueError:
+                        # Try matching by name
+                        matched = [p for p in pets if p[0].lower() == choice.lower()]
+                        if matched:
+                            pet = load_pet(matched[0][0])
+                            if pet:
+                                print(f"\n  📂 Loaded {pet.name} the {pet.species}!")
+                        else:
+                            pet = load_pet(pets[0][0])
+                            if pet:
+                                print(f"\n  📂 Loaded {pet.name} the {pet.species}! (default)")
         else:
             print(BANNER)
             print("  🎉 Welcome to Terminal Pet Society!\n")
@@ -199,9 +231,9 @@ def main():
         show_welcome(pet)
 
     if args.server_only:
-        run_server_only(pet)
+        run_server_only(pet, args.port)
     else:
-        run_tui(pet)
+        run_tui(pet, args.port)
 
 
 if __name__ == "__main__":
