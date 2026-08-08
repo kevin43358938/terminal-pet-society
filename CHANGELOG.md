@@ -5,6 +5,17 @@ All notable changes to Terminal Pet Society.
 Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.0.0] — 2026-08-08
+
+### Changed
+- **Detailed sprite overhaul**: 8–11 line sprites with visible paws (,,,), full dragon wings, unicorn mane
+- All sprites use `chr(92)` for backslashes — zero escaping issues, perfect character count
+- Eyes centered on nose in every species (Δ ≤ 0.5 columns)
+- Width normalization in `_build()`: all lines same width, no jagged edges
+- Distinct silhouettes: cat (ears+whiskers), dog (floppy+sturdy), dragon (wings+scales), unicorn (horn+mane), penguin (flippers)
+
+[4.0.0]: https://github.com/kevin43358938/terminal-pet-society/compare/v3.2.1...v4.0.0
+
 ## [3.2.1] — 2026-08-08
 
 ### Fixed
