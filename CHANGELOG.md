@@ -5,6 +5,15 @@ All notable changes to Terminal Pet Society.
 Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.1.0] — 2026-08-08
+
+### Added
+- **Persistent controls legend**: fixed key-binding panel at the bottom of the TUI
+- Shows all shortcuts: `[f] Feed  [p] Play  [s] Sleep  [t] Train  [v] Visit  [d] Nearby  [l] Saved  [?] Help  [q] Quit`
+- Cyan-bordered panel, always visible — no need to memorize keys
+
+[4.1.0]: https://github.com/kevin43358938/terminal-pet-society/compare/v4.0.0...v4.1.0
+
 ## [4.0.0] — 2026-08-08
 
 ### Changed
